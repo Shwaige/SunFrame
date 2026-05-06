@@ -1,6 +1,34 @@
 # 启动命令
 
+PowerShell：
+
+```powershell
+$env:YGMC_LABEL='shwaige'; $env:YGMC_LOGIN_ACCOUNT='shwaige'; $env:YGMC_LOGIN_PASSWORD='shwaige'; py -m ygmc.cli daily
+```
+
+Bash / Git Bash / Linux / macOS：
+
+```bash
 env YGMC_LABEL='shwaige' YGMC_LOGIN_ACCOUNT='shwaige' YGMC_LOGIN_PASSWORD='shwaige' python3 -m ygmc.cli daily
+```
+
+只执行自己农场/畜牧场的一键操作、收获和铲除：
+
+```powershell
+$env:YGMC_LABEL='shwaige'; $env:YGMC_LOGIN_ACCOUNT='shwaige'; $env:YGMC_LOGIN_PASSWORD='shwaige'; py -m ygmc.cli self-op
+```
+
+强制跳过本地缓存并重新登录：
+
+```powershell
+$env:YGMC_FORCE_LOGIN='1'; $env:YGMC_LABEL='shwaige1'; $env:YGMC_LOGIN_ACCOUNT='shwaige1'; $env:YGMC_LOGIN_PASSWORD='shwaige'; py -m ygmc.cli daily
+```
+
+请求间隔默认 0.3 秒，可临时覆盖：
+
+```powershell
+$env:YGMC_REQUEST_INTERVAL='0.5'
+```
 
 
 # YGMC Scripts

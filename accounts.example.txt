@@ -1,5 +1,5 @@
 # 格式1: label,login_account,login_password,login
-pwd_account,shwaige1,shwaige,login
+shwaige,shwaige,shwaige,login
 
 # 格式2: label_prefix,login_prefix,start,end,password,login_range
-range_account_,shwaige,1,6,shwaige,login_range
+shwaige_,shwaige,1,6,shwaige,login_range

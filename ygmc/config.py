@@ -5,7 +5,9 @@ from pathlib import Path
 BASE_URL = "http://mc.pinpinhu.com"
 HOME_PATH = "/ygmc/home/index.go"
 SIGN_PATH = "/ygmc/sign/index.go"
-DEFAULT_TIMEOUT = 20
+DEFAULT_TIMEOUT = 7
+DEFAULT_RETRIES = 1
+DEFAULT_REQUEST_INTERVAL = 0.3
 CACHE_PATH = Path(".ygmc_cache.json")
 DEFAULT_USER_AGENT = (
     "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) "

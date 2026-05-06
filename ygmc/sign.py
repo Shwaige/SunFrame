@@ -2,9 +2,9 @@ import html
 import re
 from dataclasses import dataclass
 
-from ygmc.config import Account, BASE_URL, HOME_PATH, SIGN_PATH
+from ygmc.config import Account, HOME_PATH, SIGN_PATH
 from ygmc.http import HttpClient
-from ygmc.output import print_summary
+from ygmc.output import extract_summary
 from ygmc.session import refresh_game_account, resolve_game_account
 
 
@@ -66,7 +66,9 @@ def perform_sign(account: Account, credential_source: str) -> SignResult:
         signed_now = True
 
     final_sign_page = client.fetch(SIGN_PATH, params)
-    print_summary(final_sign_page)
+    summary = extract_summary(final_sign_page)
+    if "today_status" in summary:
+        print(f"今日签到状态={summary['today_status']}")
     if not is_signed(final_sign_page):
         print("签到结果=签到失败")
         return SignResult(False, credential_source, "sign_failed", "none")
@@ -82,8 +84,6 @@ def perform_sign(account: Account, credential_source: str) -> SignResult:
     for reward_action in reward_actions:
         client.fetch(reward_action)
 
-    reward_check_page = client.fetch(SIGN_PATH, params)
-    print_summary(reward_check_page)
     print("奖励领取=已完成")
     return SignResult(True, credential_source, result_value, "done")
 
@@ -100,8 +100,8 @@ def run_sign(account: Account) -> SignResult:
         "direct": "直接凭证",
         "cache": "缓存",
         "login": "登录",
+        "login_forced": "强制登录",
         "login_refresh": "刷新登录",
     }
     print(f"凭证来源={source_labels.get(credential_source, credential_source)}")
-    print(f"牧场首页链接={BASE_URL}{HOME_PATH}?ver=0&sid={account.sid}&openId={account.open_id}")
     return perform_sign(account, credential_source)

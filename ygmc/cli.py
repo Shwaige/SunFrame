@@ -1,8 +1,11 @@
 import sys
 
 from ygmc.accounts import load_account_from_env, parse_accounts_file
+from ygmc.cache import get_cached_game_account
+from ygmc.config import BASE_URL, HOME_PATH
 from ygmc.farm_status import run_farm_status
 from ygmc.friends_ops import run_friends_ops
+from ygmc.self_ops import run_self_ops
 from ygmc.sign import run_sign
 
 
@@ -10,6 +13,7 @@ def print_usage() -> None:
     print("用法：", file=sys.stderr)
     print("  python3 -m ygmc.cli sign [accounts.txt]", file=sys.stderr)
     print("  python3 -m ygmc.cli daily [accounts.txt]", file=sys.stderr)
+    print("  python3 -m ygmc.cli self-op [accounts.txt]", file=sys.stderr)
     print("  python3 -m ygmc.cli status", file=sys.stderr)
     print("  python3 -m ygmc.cli friends-op", file=sys.stderr)
     print("  python3 ygmc_sign.py [accounts.txt]", file=sys.stderr)
@@ -62,9 +66,55 @@ def handle_sign(argv: list[str]) -> int:
 
 
 def run_daily_for_account(account) -> bool:
+    print("===== 签到 =====")
     sign_result = run_sign(account)
+    print("===== 自己农场/畜牧场 =====")
+    self_result = run_self_ops(account)
+    print("===== 好友操作 =====")
     friends_result = run_friends_ops(account)
-    return sign_result.ok and friends_result.ok
+    return sign_result.ok and self_result.ok and friends_result.ok
+
+
+def print_final_home_link(account) -> None:
+    final_account = get_cached_game_account(account) if account.has_login_credentials else account
+    if not final_account or not final_account.has_game_credentials:
+        return
+    print("===== 完成 =====")
+    print(f"农场链接：{BASE_URL}{HOME_PATH}?ver=0&sid={final_account.sid}&openId={final_account.open_id}")
+
+
+def handle_self_ops(argv: list[str]) -> int:
+    if len(argv) > 1:
+        print_usage()
+        return 2
+
+    if len(argv) == 1:
+        try:
+            accounts = parse_accounts_file(argv[0])
+        except ValueError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+        summary: list[tuple[str, str, str]] = []
+        for account in accounts:
+            print(f"== {account.label} ==")
+            try:
+                result = run_self_ops(account)
+                summary.append((account.label, "成功" if result.ok else "失败", f"收获明细={len(result.harvest_details)}"))
+            except Exception as exc:
+                print(f"结果=错误 {exc}")
+                summary.append((account.label, "失败", str(exc)))
+        print("== 汇总 ==")
+        for label, status, detail in summary:
+            print(f"{label}\t{status}\t{detail}")
+        failures = sum(1 for _, status, _ in summary if status != "成功")
+        return 1 if failures else 0
+
+    try:
+        account = load_account_from_env()
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
+    return 0 if run_self_ops(account).ok else 1
 
 
 def handle_daily(argv: list[str]) -> int:
@@ -83,6 +133,7 @@ def handle_daily(argv: list[str]) -> int:
             print(f"== {account.label} ==")
             try:
                 ok = run_daily_for_account(account)
+                print_final_home_link(account)
                 summary.append((account.label, "成功" if ok else "失败", "daily"))
             except Exception as exc:
                 print(f"结果=错误 {exc}")
@@ -98,7 +149,9 @@ def handle_daily(argv: list[str]) -> int:
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
         return 2
-    return 0 if run_daily_for_account(account) else 1
+    ok = run_daily_for_account(account)
+    print_final_home_link(account)
+    return 0 if ok else 1
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -112,6 +165,8 @@ def main(argv: list[str] | None = None) -> int:
         return handle_sign(argv)
     if command == "daily":
         return handle_daily(argv)
+    if command == "self-op":
+        return handle_self_ops(argv)
     if command == "status":
         if argv:
             print_usage()
