@@ -1,4 +1,12 @@
 # 启动命令
+批量账号：
+
+```bash
+python3 -m ygmc.cli daily accounts.batch.txt
+```
+
+
+
 
 PowerShell：
 
@@ -77,14 +85,9 @@ python3 ygmc_sign.py
 批量账号：
 
 ```bash
-python3 ygmc_sign.py accounts.txt
+python3 -m ygmc.cli daily accounts.batch.txt
 ```
 
-或：
-
-```bash
-python3 -m ygmc.cli sign accounts.txt
-```
 
 批量登录账号支持两种写法：
 
@@ -105,7 +108,7 @@ range_account_,shwaige,1,6,shwaige,login_range
 
 以后新增能力时，优先按这个结构加：
 
-- `ygmc/farm.py`: 收菜、播种、浇水
+- `ygmc/farm.py`: 播种
 - `ygmc/pet.py`: 宠物相关
 - `ygmc/activity.py`: 活动入口和领奖
 - `ygmc/cli.py`: 增加对应子命令

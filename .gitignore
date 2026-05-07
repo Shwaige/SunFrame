@@ -3,3 +3,4 @@ __pycache__/
 .ygmc_cache.json
 sign.log
 .venv/
+.DS_Store
