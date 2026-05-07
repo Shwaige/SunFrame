@@ -1,5 +1,2 @@
-# 单独账号
-shwaige,shwaige,shwaige,login
-
 # 连续账号 1-6
 shwaige_,shwaige,1,6,shwaige,login_range

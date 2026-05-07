@@ -7,8 +7,8 @@ from pathlib import Path
 import requests
 
 
-OPEN_ID = "fb881448c456f31cb8c2f854762a6aff"
-SID = "8b9a61d547b352ce042d339dd550b5b293881c16"
+OPEN_ID ="fb881448c456f31cb8c2f854762a6aff",
+SID = "34c3c8be28516e7e7b84a10ee7f73ff920dfc7c0"
 
 SEEDS_FILE = "seeds.txt"
 OUTPUT_FILE = "mature_result.tsv"
@@ -87,6 +87,20 @@ def extract_income(html: str) -> str:
     return ""
 
 
+def calculate_hourly_income(income: str, mature_time: str) -> str:
+    try:
+        income_value = float(income)
+        mature_time_value = float(mature_time)
+    except ValueError:
+        return ""
+
+    if mature_time_value <= 0:
+        return ""
+
+    value = income_value / mature_time_value
+    return f"{value:.2f}".rstrip("0").rstrip(".")
+
+
 def main():
     seeds = read_seeds(SEEDS_FILE)
 
@@ -112,10 +126,12 @@ def main():
             mature_time = extract_mature_time(html)
             quantity = extract_quantity(html)
             income = extract_income(html)
+            hourly_income = calculate_hourly_income(income, mature_time)
 
             print(
                 f"[{index}/{len(seeds)}] "
-                f"{seed_id}\t{crop_name}\t{mature_time or '未提取到'}\t{quantity or '未提取到'}\t{income or '未提取到'}"
+                f"{seed_id}\t{crop_name}\t{mature_time or '未提取到'}\t"
+                f"{quantity or '未提取到'}\t{income or '未提取到'}\t{hourly_income or '未计算'}"
             )
 
             results.append({
@@ -124,6 +140,7 @@ def main():
                 "成熟时间": mature_time,
                 "数量": quantity,
                 "预计收入": income,
+                "每小时收益": hourly_income,
             })
 
         except Exception as e:
@@ -135,14 +152,15 @@ def main():
                 "成熟时间": "",
                 "数量": "",
                 "预计收入": "",
+                "每小时收益": "",
             })
 
-        time.sleep(0.2)
+        time.sleep(0.1)
 
     with open(OUTPUT_FILE, "w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(
             f,
-            fieldnames=["种子ID", "作物名称", "成熟时间", "预计收入", "数量"],
+            fieldnames=["种子ID", "作物名称", "成熟时间", "预计收入", "每小时收益", "数量"],
             delimiter="\t",
         )
         writer.writeheader()

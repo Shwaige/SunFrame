@@ -6,13 +6,10 @@ python3 -m ygmc.cli daily accounts.batch.txt
 python3 -m ygmc.cli daily-self accounts.batch.txt
 ```
 
-
-
-
-
 PowerShell：
 
 ```powershell
+py -m ygmc.cli daily .\accounts.batch.txt
 $env:YGMC_LABEL='shwaige'; $env:YGMC_LOGIN_ACCOUNT='shwaige'; $env:YGMC_LOGIN_PASSWORD='shwaige'; py -m ygmc.cli daily
 ```
 

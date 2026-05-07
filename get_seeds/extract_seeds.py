@@ -4,8 +4,8 @@ import requests
 
 BASE = "http://mc.pinpinhu.com/ygmc/store/index.go"
 
-OPEN_ID = "fb881448c456f31cb8c2f854762a6aff"
-SID = "8b9a61d547b352ce042d339dd550b5b293881c16"
+OPEN_ID ="fb881448c456f31cb8c2f854762a6aff",
+SID = "34c3c8be28516e7e7b84a10ee7f73ff920dfc7c0"
 
 OUTPUT_FILE = "seeds.txt"
 
