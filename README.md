@@ -3,7 +3,9 @@
 
 ```bash
 python3 -m ygmc.cli daily accounts.batch.txt
+python3 -m ygmc.cli daily-self accounts.batch.txt
 ```
+
 
 
 

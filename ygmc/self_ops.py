@@ -145,7 +145,7 @@ def _farm_targets(page: str, action: str) -> list[SelfTarget]:
 
 def _ranch_targets(page: str, action: str) -> list[SelfTarget]:
     labels = {
-        "操作": {"喂养", "清洁", "治疗", "帮助", "[喂养]", "[清洁]", "[治疗]", "[帮助]"},
+        "操作": {"喂养", "喂水", "清理", "清洁", "治疗", "帮助", "[喂养]", "[喂水]", "[清理]", "[清洁]", "[治疗]", "[帮助]"},
         "收获": {"收获", "生产", "捉取", "[收获]", "[生产]", "[捉取]"},
     }
     return _extract_targets(page, "animalDetail.go", "siteId", labels[action])
@@ -197,7 +197,7 @@ def _single_action_labels(area: str, action: str) -> set[str]:
             "铲除": {"铲除", "铲地", "[铲除]", "[铲地]"},
         }[action]
     return {
-        "操作": {"喂养", "清洁", "治疗", "帮助", "[喂养]", "[清洁]", "[治疗]", "[帮助]"},
+        "操作": {"喂养", "喂水", "清理", "清洁", "治疗", "帮助", "[喂养]", "[喂水]", "[清理]", "[清洁]", "[治疗]", "[帮助]"},
         "收获": {"收获", "生产", "捉取", "[收获]", "[生产]", "[捉取]"},
     }[action]
 
