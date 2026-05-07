@@ -67,13 +67,18 @@ def perform_sign(account: Account, credential_source: str) -> SignResult:
 
     final_sign_page = client.fetch(SIGN_PATH, params)
     summary = extract_summary(final_sign_page)
-    if "today_status" in summary:
-        print(f"今日签到状态={summary['today_status']}")
     if not is_signed(final_sign_page):
         print("签到结果=签到失败")
         return SignResult(False, credential_source, "sign_failed", "none")
 
     result_value = "signed" if signed_now else "already_signed"
+    if not signed_now:
+        if "today_status" in summary:
+            print(f"今日签到状态={summary['today_status']}")
+        return SignResult(True, credential_source, result_value, "none")
+
+    if "today_status" in summary:
+        print(f"今日签到状态={summary['today_status']}")
     print(f"签到结果={'签到成功' if signed_now else '今日已签到'}")
 
     reward_actions = extract_reward_actions(final_sign_page)

@@ -1,5 +1,5 @@
-# 格式1: label,login_account,login_password,login
+# 单独账号
 shwaige,shwaige,shwaige,login
 
-# 格式2: label_prefix,login_prefix,start,end,password,login_range
+# 连续账号 1-6
 shwaige_,shwaige,1,6,shwaige,login_range

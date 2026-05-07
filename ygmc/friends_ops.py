@@ -139,6 +139,14 @@ def _friends_state_looks_abnormal(farm_list_page: str, ranch_list_page: str) -> 
     return not farm_friends and not ranch_friends
 
 
+def _ranch_is_open(client: HttpClient, params: dict[str, str]) -> bool:
+    page = client.fetch("/ygmc/home/index.go", {**params, "indexType": "1"})
+    text = _clean_text(page)
+    if "农场10级开放" in text or "请努力升级再来" in text or "未开通" in text:
+        return False
+    return "畜牧场等级" in text or "我的畜牧场" in text or "动物" in text or "饲料" in text
+
+
 def _error_text(exc: Exception) -> str:
     return f"{type(exc).__name__}: {exc}"
 
@@ -203,49 +211,54 @@ def run_friends_ops(account: Account) -> FriendsOpsResult:
 
     ranch_done = 0
     ranch_errors = 0
-    ranch_total_pages = parse_total_pages(ranch_list_page)
-    for page_no in range(1, ranch_total_pages + 1):
-        try:
-            current_page = (
-                ranch_list_page
-                if page_no == 1
-                else _fetch_with_retry(client, "/ygmc/ranch/myFriends.go", {**params, "pageNo": str(page_no)})
-            )
-        except Exception as exc:
-            ranch_errors += 1
-            print(f"畜牧场好友页处理失败=页码={page_no}|错误={_error_text(exc)}")
-            continue
-        for friend in parse_friend_list(current_page, "ranch"):
-            if friend["tag"] not in ("[可捉取]", "[可操作]"):
-                continue
+    ranch_open = _ranch_is_open(client, params)
+    if not ranch_open:
+        print("畜牧场=未开通，已跳过")
+    else:
+        ranch_total_pages = parse_total_pages(ranch_list_page)
+        for page_no in range(1, ranch_total_pages + 1):
             try:
-                detail_page = _fetch_with_retry(client, "/ygmc/ranch/friendSites.go", {**params, "otherId": friend["other_id"]})
-                action_count = 0
-                mode = "single"
-                if one_key_available(detail_page, "ranch"):
-                    one_key_links = extract_one_key_links(detail_page)
-                    result_pages = [_fetch_with_retry(client, link) for link in one_key_links]
-                    failed = any(one_key_failed(page) for page in result_pages)
-                    action_count = len(one_key_links)
-                    mode = "one_key"
-                    if failed:
+                current_page = (
+                    ranch_list_page
+                    if page_no == 1
+                    else _fetch_with_retry(client, "/ygmc/ranch/myFriends.go", {**params, "pageNo": str(page_no)})
+                )
+            except Exception as exc:
+                ranch_errors += 1
+                print(f"畜牧场好友页处理失败=页码={page_no}|错误={_error_text(exc)}")
+                continue
+            for friend in parse_friend_list(current_page, "ranch"):
+                if friend["tag"] not in ("[可捉取]", "[可操作]"):
+                    continue
+                try:
+                    detail_page = _fetch_with_retry(client, "/ygmc/ranch/friendSites.go", {**params, "otherId": friend["other_id"]})
+                    action_count = 0
+                    mode = "single"
+                    if one_key_available(detail_page, "ranch"):
+                        one_key_links = extract_one_key_links(detail_page)
+                        result_pages = [_fetch_with_retry(client, link) for link in one_key_links]
+                        failed = any(one_key_failed(page) for page in result_pages)
+                        action_count = len(one_key_links)
+                        mode = "one_key"
+                        if failed:
+                            single_links = extract_ranch_single_links(client, detail_page)
+                            for link in single_links:
+                                _fetch_with_retry(client, link)
+                            action_count = len(single_links)
+                            mode = "single"
+                    else:
                         single_links = extract_ranch_single_links(client, detail_page)
                         for link in single_links:
                             _fetch_with_retry(client, link)
                         action_count = len(single_links)
-                        mode = "single"
-                else:
-                    single_links = extract_ranch_single_links(client, detail_page)
-                    for link in single_links:
-                        _fetch_with_retry(client, link)
-                    action_count = len(single_links)
-                ranch_done += 1
-            except Exception as exc:
-                ranch_errors += 1
-                print(f"畜牧场好友处理失败={friend['nickname']}|状态={friend['tag']}|页码={page_no}|错误={_error_text(exc)}")
+                    ranch_done += 1
+                except Exception as exc:
+                    ranch_errors += 1
+                    print(f"畜牧场好友处理失败={friend['nickname']}|状态={friend['tag']}|页码={page_no}|错误={_error_text(exc)}")
 
     print(f"农场好友处理数量={farm_done}")
-    print(f"畜牧场好友处理数量={ranch_done}")
+    if ranch_open:
+        print(f"畜牧场好友处理数量={ranch_done}")
     errors = farm_errors + ranch_errors
     print(f"好友处理失败数量={errors}")
     return FriendsOpsResult(errors == 0, credential_source, farm_done, ranch_done, errors)
