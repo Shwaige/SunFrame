@@ -5,7 +5,7 @@ import requests
 BASE = "http://mc.pinpinhu.com/ygmc/store/index.go"
 
 OPEN_ID ="fb881448c456f31cb8c2f854762a6aff",
-SID = "34c3c8be28516e7e7b84a10ee7f73ff920dfc7c0"
+SID = "aa39a18548385960a9199a2ea6cf395e939a1e51"
 
 OUTPUT_FILE = "seeds.txt"
 
@@ -38,7 +38,7 @@ def extract_seeds(html: str):
 def main():
     results = []
 
-    for page_no in range(1, 13):
+    for page_no in range(1, 20):
         print(f"正在抓取第 {page_no} 页...")
 
         html = fetch_page(page_no)
