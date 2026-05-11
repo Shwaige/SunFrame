@@ -17,6 +17,8 @@ Bash / Git Bash / Linux / macOS：
 
 ```bash
 env YGMC_LABEL='shwaige' YGMC_LOGIN_ACCOUNT='shwaige' YGMC_LOGIN_PASSWORD='shwaige' python3 -m ygmc.cli daily
+env YGMC_LABEL='shwaige_2' YGMC_LOGIN_ACCOUNT='shwaige2' YGMC_LOGIN_PASSWORD='shwaige' python3 -m ygmc.cli daily
+
 ```
 
 只执行自己农场/畜牧场的一键操作、收获和铲除：
