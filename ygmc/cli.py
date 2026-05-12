@@ -73,9 +73,9 @@ def run_daily_for_account(account) -> bool:
     sign_result = run_sign(account)
     print("========== 活动 ==========")
     activity_result = run_activity(account)
-    print("========== 农场/牧场 ==========")
+    print("========== 我的农场/牧场 ==========")
     self_result = run_self_ops(account)
-    print("========== 好友操作 ==========")
+    print("========== 好友农场/牧场 ==========")
     friends_result = run_friends_ops(account)
     return sign_result.ok and activity_result.ok and self_result.ok and friends_result.ok
 
@@ -85,7 +85,7 @@ def run_daily_self_for_account(account) -> bool:
     sign_result = run_sign(account)
     print("========== 活动 ==========")
     activity_result = run_activity(account)
-    print("========== 农场/牧场 ==========")
+    print("========== 我的农场/牧场 ==========")
     self_result = run_self_ops(account)
     return sign_result.ok and activity_result.ok and self_result.ok
 

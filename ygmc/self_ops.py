@@ -145,7 +145,7 @@ def _farm_targets(page: str, action: str) -> list[SelfTarget]:
 
 def _ranch_targets(page: str, action: str) -> list[SelfTarget]:
     labels = {
-        "操作": {"喂养", "喂水", "清理", "清洁", "治疗", "帮助", "[喂养]", "[喂水]", "[清理]", "[清洁]", "[治疗]", "[帮助]"},
+        "操作": { "喂水", "清理",  "治疗", "帮助",  "[喂水]", "[清理]", "[治疗]", "[帮助]"},
         "收获": {"收获", "生产", "捉取", "[收获]", "[生产]", "[捉取]"},
     }
     return _extract_targets(page, "animalDetail.go", "siteId", labels[action])
@@ -325,9 +325,13 @@ def run_self_ops(account: Account) -> SelfOpsResult:
     ]
     skipped = sum(1 for result in actions if result.detail and result.detail[0].startswith("未显示"))
     done = sum(1 for result in actions if result.ok and not (result.detail and result.detail[0].startswith("未显示")))
-    print(f"自己操作数量={done}")
-    print(f"自己操作跳过数量={skipped}")
-    print(f"自己操作失败数量={errors}")
+    if done == 0 and errors == 0:
+        print("自己操作=未进行实际操作")
+    else:
+        print(f"自己操作数量={done}")
+        if skipped:
+            print(f"自己操作跳过数量={skipped}")
+        print(f"自己操作失败数量={errors}")
     return SelfOpsResult(
         ok=errors == 0,
         credential_source=credential_source,

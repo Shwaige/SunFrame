@@ -268,9 +268,13 @@ def run_friends_ops(account: Account) -> FriendsOpsResult:
             if round_done == 0:
                 break
 
-    print(f"农场好友处理数量={farm_done}")
-    if ranch_open:
-        print(f"畜牧场好友处理数量={ranch_done}")
     errors = farm_errors + ranch_errors
-    print(f"好友处理失败数量={errors}")
+    if farm_done == 0 and ranch_done == 0 and errors == 0:
+        print("好友操作=未进行实际操作")
+    else:
+        if farm_done:
+            print(f"农场好友处理数量={farm_done}")
+        if ranch_open and ranch_done:
+            print(f"畜牧场好友处理数量={ranch_done}")
+        print(f"好友处理失败数量={errors}")
     return FriendsOpsResult(errors == 0, credential_source, farm_done, ranch_done, errors)

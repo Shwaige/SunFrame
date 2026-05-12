@@ -22,7 +22,7 @@ python3 -m ygmc.cli sign accounts.batch.txt
 单账号常用命令：
 
 ```bash
-env YGMC_LABEL='shwaige' YGMC_LOGIN_ACCOUNT='shwaige' YGMC_LOGIN_PASSWORD='shwaige' python3 -m ygmc.cli daily
+env YGMC_LABEL='shwaige_1' YGMC_LOGIN_ACCOUNT='shwaige1' YGMC_LOGIN_PASSWORD='shwaige' python3 -m ygmc.cli daily
 env YGMC_LABEL='shwaige' YGMC_LOGIN_ACCOUNT='shwaige' YGMC_LOGIN_PASSWORD='shwaige' python3 -m ygmc.cli daily-self
 env YGMC_LABEL='shwaige' YGMC_LOGIN_ACCOUNT='shwaige' YGMC_LOGIN_PASSWORD='shwaige' python3 -m ygmc.cli self-op
 ```

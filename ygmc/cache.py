@@ -7,7 +7,11 @@ from ygmc.config import Account, BASE_URL, CACHE_PATH, HOME_PATH
 def load_cache(path: Path = CACHE_PATH) -> dict[str, dict[str, str]]:
     if not path.exists():
         return {}
-    return json.loads(path.read_text(encoding="utf-8"))
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        print(f"缓存文件损坏，已忽略并按空缓存处理：{path} | 错误={exc}")
+        return {}
 
 
 def save_cache(cache: dict[str, dict[str, str]], path: Path = CACHE_PATH) -> None:
