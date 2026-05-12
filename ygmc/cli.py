@@ -148,7 +148,8 @@ def handle_activity(argv: list[str]) -> int:
             print(f"== {account.label} ==")
             try:
                 result = run_activity(account)
-                summary.append((account.label, "成功" if result.ok else "失败", result.free_claim_status))
+                detail = f"新人红包={result.newcomer_red_packet_status},母亲节={result.mother_day_status}"
+                summary.append((account.label, "成功" if result.ok else "失败", detail))
             except Exception as exc:
                 print(f"结果=错误 {exc}")
                 summary.append((account.label, "失败", str(exc)))
