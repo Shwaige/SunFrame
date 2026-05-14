@@ -8,12 +8,14 @@ from ygmc.farm_status import run_farm_status
 from ygmc.friends_ops import run_friends_ops
 from ygmc.self_ops import run_self_ops
 from ygmc.sign import run_sign
+from ygmc.sunshine import run_sunshine
 
 
 def print_usage() -> None:
     print("用法：", file=sys.stderr)
     print("  python3 -m ygmc.cli sign [accounts.txt]", file=sys.stderr)
     print("  python3 -m ygmc.cli activity [accounts.txt]", file=sys.stderr)
+    print("  python3 -m ygmc.cli sunshine [accounts.txt]", file=sys.stderr)
     print("  python3 -m ygmc.cli daily [accounts.txt]", file=sys.stderr)
     print("  python3 -m ygmc.cli daily-self [accounts.txt]", file=sys.stderr)
     print("  python3 -m ygmc.cli self-op [accounts.txt]", file=sys.stderr)
@@ -130,6 +132,40 @@ def handle_self_ops(argv: list[str]) -> int:
         print(str(exc), file=sys.stderr)
         return 2
     return 0 if run_self_ops(account).ok else 1
+
+
+def handle_sunshine(argv: list[str]) -> int:
+    if len(argv) > 1:
+        print_usage()
+        return 2
+
+    if len(argv) == 1:
+        try:
+            accounts = parse_accounts_file(argv[0])
+        except ValueError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+        summary: list[tuple[str, str, str]] = []
+        for account in accounts:
+            print(f"== {account.label} ==")
+            try:
+                result = run_sunshine(account)
+                summary.append((account.label, "成功" if result.ok else "失败", f"阳光值={result.total_points}"))
+            except Exception as exc:
+                print(f"结果=错误 {exc}")
+                summary.append((account.label, "失败", str(exc)))
+        print("== 汇总 ==")
+        for label, status, detail in summary:
+            print(f"{label}\t{status}\t{detail}")
+        failures = sum(1 for _, status, _ in summary if status != "成功")
+        return 1 if failures else 0
+
+    try:
+        account = load_account_from_env()
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
+    return 0 if run_sunshine(account).ok else 1
 
 
 def handle_activity(argv: list[str]) -> int:
@@ -252,6 +288,8 @@ def main(argv: list[str] | None = None) -> int:
         return handle_sign(argv)
     if command == "activity":
         return handle_activity(argv)
+    if command == "sunshine":
+        return handle_sunshine(argv)
     if command == "daily":
         return handle_daily(argv)
     if command == "daily-self":

@@ -1,14 +1,23 @@
 # extract_mature.py
 import csv
+import json
 import re
 import time
 from pathlib import Path
 
 import requests
 
+CACHE_PATH = Path(__file__).resolve().parent.parent / ".ygmc_cache.json"
+CACHE_KEY = "shwaige"
 
-OPEN_ID ="fb881448c456f31cb8c2f854762a6aff",
-SID = "aa39a18548385960a9199a2ea6cf395e939a1e51"
+
+def _load_credentials() -> tuple[str, str]:
+    data = json.loads(CACHE_PATH.read_text(encoding="utf-8"))
+    entry = data[CACHE_KEY]
+    return entry["open_id"], entry["sid"]
+
+
+OPEN_ID, SID = _load_credentials()
 
 SEEDS_FILE = "seeds.txt"
 OUTPUT_FILE = "mature_result.tsv"

@@ -1,11 +1,23 @@
 # extract_seeds.py
+import json
 import re
+from pathlib import Path
+
 import requests
 
 BASE = "http://mc.pinpinhu.com/ygmc/store/index.go"
 
-OPEN_ID ="fb881448c456f31cb8c2f854762a6aff",
-SID = "aa39a18548385960a9199a2ea6cf395e939a1e51"
+CACHE_PATH = Path(__file__).resolve().parent.parent / ".ygmc_cache.json"
+CACHE_KEY = "shwaige"
+
+
+def _load_credentials() -> tuple[str, str]:
+    data = json.loads(CACHE_PATH.read_text(encoding="utf-8"))
+    entry = data[CACHE_KEY]
+    return entry["open_id"], entry["sid"]
+
+
+OPEN_ID, SID = _load_credentials()
 
 OUTPUT_FILE = "seeds.txt"
 
@@ -38,7 +50,7 @@ def extract_seeds(html: str):
 def main():
     results = []
 
-    for page_no in range(1, 20):
+    for page_no in range(1, 30):
         print(f"正在抓取第 {page_no} 页...")
 
         html = fetch_page(page_no)
