@@ -100,7 +100,7 @@ shwaige_,shwaige,1,6,shwaige,login_range
 | 命令 | 说明 |
 |------|------|
 | `sign` | 签到、累签奖励、月累签奖励 |
-| `activity` | 活动逻辑（新人红包、母亲节等） |
+| `activity` | 活动逻辑（新人红包等） |
 | `sunshine` | 阳光任务状态检查与VIP奖励领取 |
 | `self-op` | 自己农场/畜牧场操作 |
 | `friends-op` | 好友农场/畜牧场操作 |
@@ -128,7 +128,6 @@ shwaige_,shwaige,1,6,shwaige,login_range
 活动模块包含：
 
 - **新人红包**：从主页找入口，若有免费领取则点击一次
-- **母亲节活动**：进入 `/ygmc/summerParty/index.go`，点击补充体力按钮（最多2次）
 
 ### sunshine
 
@@ -205,7 +204,7 @@ VIP奖励=已点击
 | `ygmc/session.py` | 凭证解析、缓存优先、登录刷新 |
 | `ygmc/http.py` | HTTP 请求封装、请求节流、超时重试 |
 | `ygmc/sign.py` | 签到逻辑 |
-| `ygmc/activity.py` | 活动逻辑（新人红包、母亲节等） |
+| `ygmc/activity.py` | 活动逻辑（新人红包等） |
 | `ygmc/sunshine.py` | 阳光任务检查与VIP奖励领取 |
 | `ygmc/self_ops.py` | 自己农场/畜牧场操作 |
 | `ygmc/friends_ops.py` | 好友农场/畜牧场操作 |

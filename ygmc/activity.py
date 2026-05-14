@@ -12,7 +12,6 @@ class ActivityResult:
     ok: bool
     credential_source: str
     newcomer_red_packet_status: str
-    mother_day_status: str
 
 
 def _clean_text(value: str) -> str:
@@ -64,8 +63,8 @@ def _run_newcomer_red_packet(client: HttpClient, home_page: str) -> str:
     return "no_button"
 
 
-def _has_real_activity_action(newcomer_red_packet_status: str, mother_day_status: str) -> bool:
-    return newcomer_red_packet_status == "claimed_once" or mother_day_status.startswith("clicked_")
+def _has_real_activity_action(newcomer_red_packet_status: str) -> bool:
+    return newcomer_red_packet_status == "claimed_once"
 
 
 def _newcomer_summary(status: str) -> str:
@@ -76,9 +75,6 @@ def _newcomer_summary(status: str) -> str:
         "no_button": "无可点击按钮",
     }
     return mapping.get(status, status)
-
-
-
 
 
 def run_activity(account: Account) -> ActivityResult:
@@ -94,6 +90,7 @@ def run_activity(account: Account) -> ActivityResult:
             client = HttpClient()
             home_page = client.fetch(HOME_PATH, params)
 
+    newcomer_red_packet_status = _run_newcomer_red_packet(client, home_page)
     newcomer_red_packet_status = _run_newcomer_red_packet(client, home_page)
     if not _has_real_activity_action(newcomer_red_packet_status):
         print("活动模块=未进行实际操作")
