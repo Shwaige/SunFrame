@@ -64,19 +64,6 @@ def _run_newcomer_red_packet(client: HttpClient, home_page: str) -> str:
     return "no_button"
 
 
-def _run_mother_day_activity(client: HttpClient, params: dict[str, str]) -> str:
-    activity_page = client.fetch("/ygmc/summerParty/index.go", params)
-    energy_links = _extract_links_by_text(activity_page, "补充体力")
-    if not energy_links:
-        return "no_button"
-
-    clicked = 0
-    for link in energy_links[:2]:
-        client.fetch(link)
-        clicked += 1
-    return f"clicked_{clicked}"
-
-
 def _has_real_activity_action(newcomer_red_packet_status: str, mother_day_status: str) -> bool:
     return newcomer_red_packet_status == "claimed_once" or mother_day_status.startswith("clicked_")
 
@@ -91,13 +78,7 @@ def _newcomer_summary(status: str) -> str:
     return mapping.get(status, status)
 
 
-def _mother_day_summary(status: str) -> str:
-    if status.startswith("clicked_"):
-        return f"已补充体力 {status.split('_', 1)[1]} 次"
-    mapping = {
-        "no_button": "无可点击按钮",
-    }
-    return mapping.get(status, status)
+
 
 
 def run_activity(account: Account) -> ActivityResult:
@@ -114,10 +95,8 @@ def run_activity(account: Account) -> ActivityResult:
             home_page = client.fetch(HOME_PATH, params)
 
     newcomer_red_packet_status = _run_newcomer_red_packet(client, home_page)
-    mother_day_status = _run_mother_day_activity(client, params)
-    if not _has_real_activity_action(newcomer_red_packet_status, mother_day_status):
+    if not _has_real_activity_action(newcomer_red_packet_status):
         print("活动模块=未进行实际操作")
     else:
         print(f"新人红包={_newcomer_summary(newcomer_red_packet_status)}")
-        print(f"母亲节活动={_mother_day_summary(mother_day_status)}")
-    return ActivityResult(True, credential_source, newcomer_red_packet_status, mother_day_status)
+    return ActivityResult(True, credential_source, newcomer_red_packet_status)
