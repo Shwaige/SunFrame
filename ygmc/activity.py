@@ -45,6 +45,13 @@ def _extract_free_claim_text(page: str) -> str:
     return ""
 
 
+def _extract_free_countdown_text(page: str) -> str:
+    match = re.search(r"(免费倒计时剩[^<\r\n]+)", page)
+    if match:
+        return _clean_text(match.group(1))
+    return ""
+
+
 def _run_newcomer_red_packet(client: HttpClient, home_page: str) -> str:
     activity_link = _extract_activity_link(home_page, "新人红包")
     if not activity_link:
@@ -55,6 +62,10 @@ def _run_newcomer_red_packet(client: HttpClient, home_page: str) -> str:
 
     if "免费领取次数已用完" in activity_page:
         return "used_up"
+
+    countdown_text = _extract_free_countdown_text(activity_page)
+    if countdown_text:
+        return f"cooldown:{countdown_text}"
 
     if free_claim_links:
         client.fetch(free_claim_links[0])
@@ -68,6 +79,9 @@ def _has_real_activity_action(newcomer_red_packet_status: str) -> bool:
 
 
 def _newcomer_summary(status: str) -> str:
+    if status.startswith("cooldown:"):
+        return status.removeprefix("cooldown:")
+
     mapping = {
         "not_found": "未发现入口",
         "used_up": "今日已用完",
@@ -91,9 +105,5 @@ def run_activity(account: Account) -> ActivityResult:
             home_page = client.fetch(HOME_PATH, params)
 
     newcomer_red_packet_status = _run_newcomer_red_packet(client, home_page)
-    newcomer_red_packet_status = _run_newcomer_red_packet(client, home_page)
-    if not _has_real_activity_action(newcomer_red_packet_status):
-        print("活动模块=未进行实际操作")
-    else:
-        print(f"新人红包={_newcomer_summary(newcomer_red_packet_status)}")
+    print(f"新人红包={_newcomer_summary(newcomer_red_packet_status)}")
     return ActivityResult(True, credential_source, newcomer_red_packet_status)

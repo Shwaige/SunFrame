@@ -71,32 +71,36 @@ def handle_sign(argv: list[str]) -> int:
 
 
 def run_daily_for_account(account) -> bool:
-    print("========== 签到 ==========")
+    print("========== 签到 ==========\n")
     sign_result = run_sign(account)
-    print("========== 活动 ==========")
+    print("\n========== 活动 ==========\n")
     activity_result = run_activity(account)
-    print("========== 我的农场/牧场 ==========")
+    print("\n==========每日活跃==========\n")
+    sunshine_result = run_sunshine(account, summary_only=True)
+    print("\n========== 我的农场/牧场 ==========\n")
     self_result = run_self_ops(account)
-    print("========== 好友农场/牧场 ==========")
+    print("\n========== 好友农场/牧场 ==========\n")
     friends_result = run_friends_ops(account)
-    return sign_result.ok and activity_result.ok and self_result.ok and friends_result.ok
+    return sign_result.ok and activity_result.ok and sunshine_result.ok and self_result.ok and friends_result.ok
 
 
 def run_daily_self_for_account(account) -> bool:
-    print("========== 签到 ==========")
+    print("========== 签到 ==========\n")
     sign_result = run_sign(account)
-    print("========== 活动 ==========")
+    print("\n========== 活动 ==========\n")
     activity_result = run_activity(account)
-    print("========== 我的农场/牧场 ==========")
+    print("\n==========每日活跃==========\n")
+    sunshine_result = run_sunshine(account, summary_only=True)
+    print("\n========== 我的农场/牧场 ==========\n")
     self_result = run_self_ops(account)
-    return sign_result.ok and activity_result.ok and self_result.ok
+    return sign_result.ok and activity_result.ok and sunshine_result.ok and self_result.ok
 
 
 def print_final_home_link(account) -> None:
     final_account = get_cached_game_account(account) if account.has_login_credentials else account
     if not final_account or not final_account.has_game_credentials:
         return
-    print("========== 完成 ==========")
+    print("\n========== 完成 ==========\n")
     print(f"农场链接：{BASE_URL}{HOME_PATH}?ver=0&sid={final_account.sid}&openId={final_account.open_id}")
 
 

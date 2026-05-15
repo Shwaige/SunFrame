@@ -1,11 +1,14 @@
 import re
 from dataclasses import dataclass, field
+from html import unescape
 
 from ygmc.config import Account, HOME_PATH
 from ygmc.http import HttpClient
 from ygmc.session import refresh_game_account, resolve_game_account
 
 SUNSHINE_PATH = "/ygmc/aid/index.go"
+DIG_INDEX_PATH = "/ygmc/dig/index.go"
+SYNTHESIS_DETAIL_PATH = "/ygmc/synthesis/synthesisDetail.go"
 
 
 @dataclass
@@ -24,6 +27,7 @@ class SunshineResult:
     total_points: str
     tasks: list[SunshineTask] = field(default_factory=list)
     vip_reward_status: str = ""
+    active_actions: list[str] = field(default_factory=list)
 
 
 def _clean_text(value: str) -> str:
@@ -75,11 +79,106 @@ def _extract_vip_link(page: str) -> str | None:
     return None
 
 
-def _has_real_action(total_points: str, vip_reward_status: str) -> bool:
-    return vip_reward_status != ""
+def _task_remaining(tasks: list[SunshineTask], keyword: str, target_count: int) -> int:
+    for task in tasks:
+        if keyword not in task.description:
+            continue
+        if task.completed:
+            return 0
+        if "/" not in task.progress:
+            return target_count
+        current, target = task.progress.split("/", 1)
+        try:
+            return max(0, int(target) - int(current))
+        except ValueError:
+            return target_count
+    return 0
 
 
-def run_sunshine(account: Account) -> SunshineResult:
+def _extract_form_action(page: str, action_keyword: str) -> str | None:
+    match = re.search(
+        rf"<form\s+[^>]*action=['\"]([^'\"]*{re.escape(action_keyword)}[^'\"]*)['\"]",
+        page,
+        re.I,
+    )
+    if not match:
+        return None
+    return unescape(match.group(1))
+
+
+def _extract_link_by_text(page: str, keyword: str) -> str | None:
+    for href, text in re.findall(r"<a\s+href=['\"]([^'\"]+)['\"][^>]*>(.*?)</a>", page, re.I | re.S):
+        plain = _clean_text(text)
+        if keyword in plain:
+            return unescape(href)
+    return None
+
+
+def _extract_normal_dig_link(page: str) -> str | None:
+    for fragment in re.split(r"<br\s*/?>", page, flags=re.I):
+        if "普通藏宝图" not in fragment:
+            continue
+        link = _extract_link_by_text(fragment, "挖宝")
+        if link:
+            return link
+    return None
+
+
+def _extract_dig_node_link(page: str) -> str | None:
+    for href, text in re.findall(r"<a\s+href=['\"]([^'\"]+)['\"][^>]*>(.*?)</a>", page, re.I | re.S):
+        plain = _clean_text(text)
+        href = unescape(href)
+        if "dig.go" in href and plain not in ("返回前页", "返回挖宝首页"):
+            return href
+    return None
+
+
+def _run_dig_task(client: HttpClient, params: dict[str, str], times: int) -> int:
+    done = 0
+    for _ in range(times):
+        dig_index_page = client.fetch(DIG_INDEX_PATH, {**params, "ver": "null"})
+        map_link = _extract_link_by_text(dig_index_page, "天圣雪山")
+        if not map_link:
+            break
+        map_page = client.fetch(map_link)
+        dig_link = _extract_normal_dig_link(map_page)
+        if not dig_link:
+            break
+        node_page = client.fetch(dig_link)
+        node_link = _extract_dig_node_link(node_page)
+        if not node_link:
+            break
+        client.fetch(node_link)
+        done += 1
+    return done
+
+
+def _run_synthesis_task(client: HttpClient, params: dict[str, str]) -> bool:
+    detail_page = client.fetch(SYNTHESIS_DETAIL_PATH, {**params, "id": "66", "type": "1"})
+    action = _extract_form_action(detail_page, "synthesis.go")
+    if not action:
+        return False
+    client.fetch(action, data={"id": "66", "count": "3"})
+    return True
+
+
+def _run_active_tasks(client: HttpClient, params: dict[str, str], tasks: list[SunshineTask]) -> list[str]:
+    actions: list[str] = []
+
+    dig_remaining = _task_remaining(tasks, "挖宝", 2)
+    if dig_remaining > 0:
+        dig_done = _run_dig_task(client, params, min(dig_remaining, 2))
+        actions.append(f"挖宝={dig_done}次")
+
+    synthesis_remaining = _task_remaining(tasks, "制造屋合成", 3)
+    if synthesis_remaining > 0:
+        synthesis_done = _run_synthesis_task(client, params)
+        actions.append("制造屋合成=3次" if synthesis_done else "制造屋合成=失败")
+
+    return actions
+
+
+def run_sunshine(account: Account, summary_only: bool = False) -> SunshineResult:
     game_account, credential_source = resolve_game_account(account)
     params = {"openId": game_account.open_id, "sid": game_account.sid}
     client = HttpClient()
@@ -94,6 +193,10 @@ def run_sunshine(account: Account) -> SunshineResult:
             page = client.fetch(SUNSHINE_PATH, params)
 
     total_points, tasks = _parse_tasks(page)
+    active_actions = _run_active_tasks(client, params, tasks)
+    if active_actions:
+        page = client.fetch(SUNSHINE_PATH, params)
+        total_points, tasks = _parse_tasks(page)
 
     vip_reward_status = ""
     vip_link = _extract_vip_link(page)
@@ -107,7 +210,21 @@ def run_sunshine(account: Account) -> SunshineResult:
         except Exception:
             vip_reward_status = "failed"
 
-    completed_count = sum(1 for t in tasks if t.completed)
+    if summary_only:
+        if active_actions:
+            print(f"活跃操作={','.join(active_actions)}")
+        print(f"今日阳光值={total_points}点")
+        return SunshineResult(
+            ok=vip_reward_status != "failed",
+            credential_source=credential_source,
+            total_points=total_points,
+            tasks=tasks,
+            vip_reward_status=vip_reward_status,
+            active_actions=active_actions,
+        )
+
+    if active_actions:
+        print(f"活跃操作={','.join(active_actions)}")
     print(f"今日阳光值={total_points}点")
 
     exclude_keywords = ["充值", "消费", "转动风车", "刷新稻草人"]
@@ -133,4 +250,5 @@ def run_sunshine(account: Account) -> SunshineResult:
         total_points=total_points,
         tasks=tasks,
         vip_reward_status=vip_reward_status,
+        active_actions=active_actions,
     )
