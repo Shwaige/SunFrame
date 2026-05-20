@@ -25,7 +25,7 @@ python3 -m ygmc.cli sunshine accounts.batch.txt
 
 ```bash
 # 使用登录凭证
-env YGMC_LABEL='shwaige_1' YGMC_LOGIN_ACCOUNT='shwaige1' YGMC_LOGIN_PASSWORD='shwaige' python3 -m ygmc.cli daily
+env YGMC_LABEL='shwaige' YGMC_LOGIN_ACCOUNT='shwaige' YGMC_LOGIN_PASSWORD='shwaige' python3 -m ygmc.cli daily
 
 # 使用游戏凭证
 env YGMC_OPEN_ID='...' YGMC_SID='...' python3 -m ygmc.cli sunshine
