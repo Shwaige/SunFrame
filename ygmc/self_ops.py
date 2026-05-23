@@ -160,9 +160,13 @@ def _fetch_self_pages(account: Account) -> tuple[HttpClient, dict[str, str], str
 
 
 def _self_state_looks_abnormal(farm_page: str, ranch_page: str) -> bool:
-    farm_links = _extract_action_links(farm_page, {"操作", "收获", "铲除"}, ("oneKeyFarm", "oneKeyUproot"))
-    ranch_links = _extract_action_links(ranch_page, {"操作", "收获"}, ("oneKeyRanch",))
-    return not farm_links and not ranch_links
+    combined_page = f"{farm_page}\n{ranch_page}"
+    combined_text = _clean_text(combined_page)
+    if "login.action" in combined_page or "loginValidate.action" in combined_page:
+        return True
+    has_game_content = any(marker in combined_page for marker in ("fieldDetail.go", "animalDetail.go"))
+    has_game_text = "农场" in combined_text or "牧场" in combined_text
+    return "登录" in combined_text and not has_game_content and not has_game_text
 
 
 def _error_text(exc: Exception) -> str:
@@ -274,8 +278,11 @@ def run_self_ops(account: Account) -> SelfOpsResult:
     client, params, farm_page, ranch_page = _fetch_self_pages(game_account)
     if credential_source == "cache" and account.has_login_credentials:
         if _self_state_looks_abnormal(farm_page, ranch_page):
-            game_account, credential_source = refresh_game_account(account)
-            client, params, farm_page, ranch_page = _fetch_self_pages(game_account)
+            try:
+                game_account, credential_source = refresh_game_account(account)
+                client, params, farm_page, ranch_page = _fetch_self_pages(game_account)
+            except Exception as exc:
+                print(f"重新登录失败，继续使用缓存|错误={_error_text(exc)}")
 
     actions: list[SelfActionResult] = []
     errors = 0

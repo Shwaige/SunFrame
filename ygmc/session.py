@@ -30,20 +30,30 @@ def resolve_game_account(account: Account) -> tuple[Account, str]:
 
     if account.has_login_credentials:
         force_login = force_login_enabled() and account.cache_key not in _FORCED_LOGIN_KEYS
+        cached_account = get_cached_game_account(account)
         if not force_login:
-            cached_account = get_cached_game_account(account)
             if cached_account:
                 if game_account_looks_valid(cached_account):
                     return cached_account, "cache"
-                resolved = login_and_resolve_game_account(account)
-                update_cached_game_account(resolved)
-                return resolved, "login_refresh"
+                try:
+                    resolved = login_and_resolve_game_account(account)
+                    update_cached_game_account(resolved)
+                    return resolved, "login_refresh"
+                except Exception as exc:
+                    print(f"登录接口不可用，继续使用缓存|错误={type(exc).__name__}: {exc}")
+                    return cached_account, "cache_stale"
 
-        resolved = login_and_resolve_game_account(account)
-        update_cached_game_account(resolved)
-        if force_login:
-            _FORCED_LOGIN_KEYS.add(account.cache_key)
-        return resolved, "login_forced" if force_login else "login"
+        try:
+            resolved = login_and_resolve_game_account(account)
+            update_cached_game_account(resolved)
+            if force_login:
+                _FORCED_LOGIN_KEYS.add(account.cache_key)
+            return resolved, "login_forced" if force_login else "login"
+        except Exception as exc:
+            if cached_account:
+                print(f"登录接口不可用，继续使用缓存|错误={type(exc).__name__}: {exc}")
+                return cached_account, "cache_stale"
+            raise
 
     raise ValueError("缺少游戏凭证或登录账号密码")
 

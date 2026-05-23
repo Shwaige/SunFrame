@@ -1,6 +1,9 @@
 import os
+import socket
+import ssl
 import threading
 import time
+import urllib.error
 import urllib.request
 from http.cookiejar import CookieJar
 from urllib.parse import urlencode, urljoin
@@ -22,6 +25,10 @@ def _request_interval() -> float:
         return DEFAULT_REQUEST_INTERVAL
 
 
+def _http_debug_enabled() -> bool:
+    return os.environ.get("YGMC_HTTP_DEBUG", "").strip().lower() in {"1", "true", "yes", "on"}
+
+
 def _throttle_request() -> None:
     global _LAST_REQUEST_AT
     interval = _request_interval()
@@ -33,6 +40,21 @@ def _throttle_request() -> None:
         if wait_seconds > 0:
             time.sleep(wait_seconds)
         _LAST_REQUEST_AT = time.monotonic()
+
+
+def _is_retryable_error(exc: BaseException) -> bool:
+    if isinstance(exc, (TimeoutError, socket.timeout)):
+        return True
+    if isinstance(exc, (ConnectionError, ConnectionResetError, ssl.SSLError)):
+        text = str(exc).lower()
+        return "timed out" in text or "eof" in text or "reset" in text
+    if isinstance(exc, urllib.error.URLError):
+        reason = exc.reason
+        if isinstance(reason, (TimeoutError, socket.timeout, ConnectionError, ConnectionResetError, ssl.SSLError)):
+            return True
+        text = str(reason).lower()
+        return "timed out" in text or "eof" in text or "reset" in text
+    return False
 
 
 class HttpClient:
@@ -63,10 +85,13 @@ class HttpClient:
                 with self._opener.open(req, timeout=DEFAULT_TIMEOUT) as resp:
                     self.last_url = resp.geturl()
                     return resp.read().decode("utf-8", errors="replace")
-            except TimeoutError:
+            except (TimeoutError, socket.timeout, urllib.error.URLError) as exc:
+                if not _is_retryable_error(exc):
+                    raise
                 if attempt >= DEFAULT_RETRIES:
                     raise
-                print(f"HTTP请求超时，重试={attempt + 1}|url={url}")
+                if _http_debug_enabled():
+                    print(f"HTTP请求异常，重试={attempt + 1}|错误={exc}|url={url}")
         raise RuntimeError("HTTP请求失败")
 
     def cookie_value(self, name: str) -> str:
