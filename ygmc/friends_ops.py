@@ -64,15 +64,32 @@ def extract_links(page: str, keywords: list[str]) -> list[str]:
     return links
 
 
-def extract_one_key_links(page: str) -> list[str]:
-    match = re.search(r"一键：(.*?)(?:<br\s*/?>|\n)", page, re.I | re.S)
-    if not match:
+def extract_one_key_links(page: str, excluded_keywords: tuple[str, ...] = ()) -> list[str]:
+    return extract_one_key_links_by_text(page, excluded_keywords=excluded_keywords)
+
+
+def extract_one_key_links_by_text(
+    page: str,
+    allowed_keywords: tuple[str, ...] = (),
+    excluded_keywords: tuple[str, ...] = (),
+) -> list[str]:
+    section = extract_one_key_section(page)
+    if not section:
         return []
-    section = match.group(1)
     links: list[str] = []
-    for href in re.findall(r"<a\s+href=['\"]([^'\"]+)['\"]", section, re.I):
+    for href, text in re.findall(r"<a\s+href=['\"]([^'\"]+)['\"][^>]*>(.*?)</a>", section, re.I | re.S):
+        plain = _clean_text(text)
+        if allowed_keywords and not any(keyword in plain for keyword in allowed_keywords):
+            continue
+        if any(keyword in plain for keyword in excluded_keywords):
+            continue
         links.append(html.unescape(href))
     return links
+
+
+def extract_one_key_section(page: str) -> str:
+    match = re.search(r"一键：(.*?)(?:<br\s*/?>|\n)", page, re.I | re.S)
+    return match.group(1) if match else ""
 
 
 def one_key_failed(page: str) -> bool:
@@ -96,15 +113,19 @@ def one_key_available(page: str, kind: str) -> bool:
     text = _clean_text(page)
     if "开启 (无)" in text or "一键：开启(无)" in text or "一键：开启 (无)" in text:
         return False
+    if kind == "farm":
+        return bool(extract_one_key_links_by_text(page, ("摘取", "摘菜", "帮助"), ("放虫",)))
     return bool(extract_one_key_links(page))
 
 
-def extract_farm_single_links(page: str) -> list[str]:
+def extract_farm_single_links(page: str, allowed_actions: tuple[str, ...] | None = None) -> list[str]:
+    allowed = allowed_actions or ("摘取", "摘菜", "浇水", "除草", "帮助")
     links: list[str] = []
     for href, text in re.findall(r"<a\s+href=['\"]([^'\"]+)['\"][^>]*>(.*?)</a>", page, re.I | re.S):
         plain = _clean_text(text)
         href = html.unescape(href)
-        if "friendOperate.go" in href and plain in ("[摘取]", "[浇水]", "[除草]", "[捉虫]"):
+        plain_action = plain.strip("[]")
+        if "friendOperate.go" in href and plain_action in allowed:
             links.append(href)
     return links
 
@@ -180,7 +201,7 @@ def _run_farm_round(client: HttpClient, params: dict[str, str]) -> tuple[int, in
             try:
                 detail_page = _fetch_with_retry(client, "/ygmc/farm/friendFields.go", {**params, "otherId": friend["other_id"]})
                 if one_key_available(detail_page, "farm"):
-                    one_key_links = extract_one_key_links(detail_page)
+                    one_key_links = extract_one_key_links_by_text(detail_page, ("摘取", "摘菜", "帮助"), ("放虫",))
                     result_pages = [_fetch_with_retry(client, link) for link in one_key_links]
                     failed = any(one_key_failed(page) for page in result_pages)
                     if failed:
