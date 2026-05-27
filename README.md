@@ -14,7 +14,7 @@
 ### 批量命令
 
 ```bash
-python3 -m ygmc.cli daily accounts.batch.txt
+python3 -m ygmc.cli daily accounts.example.txt
 python3 -m ygmc.cli daily-self accounts.batch.txt
 python3 -m ygmc.cli self-op accounts.batch.txt
 python3 -m ygmc.cli sign accounts.batch.txt
@@ -35,6 +35,7 @@ env YGMC_OPEN_ID='...' YGMC_SID='...' python3 -m ygmc.cli sunshine
 
 ```powershell
 py -m ygmc.cli daily-self .\accounts.batch.txt
+py -m ygmc.cli daily .\accounts.txtxample.txt
 $env:YGMC_LABEL='shwaige'; $env:YGMC_LOGIN_ACCOUNT='shwaige'; $env:YGMC_LOGIN_PASSWORD='shwaige'; py -m ygmc.cli daily
 ```
 
