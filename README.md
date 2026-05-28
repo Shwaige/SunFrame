@@ -209,7 +209,6 @@ VIP奖励=已点击
 | `ygmc/sunshine.py` | 阳光任务检查与VIP奖励领取 |
 | `ygmc/self_ops.py` | 自己农场/畜牧场操作 |
 | `ygmc/friends_ops.py` | 好友农场/畜牧场操作 |
-| `ygmc_sign.py` | 旧签到入口兼容脚本 |
 
 ## 常见问题
 

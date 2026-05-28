@@ -21,7 +21,6 @@ def print_usage() -> None:
     print("  python3 -m ygmc.cli self-op [accounts.txt]", file=sys.stderr)
     print("  python3 -m ygmc.cli status", file=sys.stderr)
     print("  python3 -m ygmc.cli friends-op", file=sys.stderr)
-    print("  python3 ygmc_sign.py [accounts.txt]", file=sys.stderr)
     print("环境变量模式：", file=sys.stderr)
     print("  YGMC_OPEN_ID + YGMC_SID", file=sys.stderr)
     print("  或 YGMC_LOGIN_ACCOUNT + YGMC_LOGIN_PASSWORD", file=sys.stderr)
