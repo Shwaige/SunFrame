@@ -4,4 +4,3 @@ __pycache__/
 sign.log
 .venv/
 .DS_Store
-docs
