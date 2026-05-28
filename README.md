@@ -35,7 +35,7 @@ env YGMC_OPEN_ID='...' YGMC_SID='...' python3 -m ygmc.cli sunshine
 
 ```powershell
 py -m ygmc.cli daily-self .\accounts.batch.txt
-py -m ygmc.cli daily .\accounts.txtxample.txt
+py -m ygmc.cli daily .\accounts.example.txt
 $env:YGMC_LABEL='shwaige'; $env:YGMC_LOGIN_ACCOUNT='shwaige'; $env:YGMC_LOGIN_PASSWORD='shwaige'; py -m ygmc.cli daily
 ```
 
