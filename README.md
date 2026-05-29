@@ -1,28 +1,22 @@
 # YGMC 自动化工具
-
 面向阳光牧场的命令行自动化工具，支持：
-
 - 签到与奖励领取
 - 活动处理
 - 阳光任务检查与VIP奖励领取
 - 自己农场/畜牧场操作
 - 好友农场/畜牧场操作
 - 单账号与批量账号运行
-
 ## 快速开始
-
 ### 批量命令
-
 ```bash
 python3 -m ygmc.cli daily accounts.example.txt
 python3 -m ygmc.cli daily-self accounts.batch.txt
-python3 -m ygmc.cli self-op accounts.batch.txt
-python3 -m ygmc.cli sign accounts.batch.txt
-python3 -m ygmc.cli sunshine accounts.batch.txt
+```powershell
+py -m ygmc.cli daily .\accounts.example.txt
+py -m ygmc.cli daily-self .\accounts.batch.txt
 ```
 
 ### 单账号命令
-
 ```bash
 # 使用登录凭证
 env YGMC_LABEL='shwaige' YGMC_LOGIN_ACCOUNT='shwaige' YGMC_LOGIN_PASSWORD='shwaige' python3 -m ygmc.cli daily
@@ -30,15 +24,6 @@ env YGMC_LABEL='shwaige' YGMC_LOGIN_ACCOUNT='shwaige' YGMC_LOGIN_PASSWORD='shwai
 # 使用游戏凭证
 env YGMC_OPEN_ID='...' YGMC_SID='...' python3 -m ygmc.cli sunshine
 ```
-
-### PowerShell 示例
-
-```powershell
-py -m ygmc.cli daily-self .\accounts.batch.txt
-py -m ygmc.cli daily .\accounts.example.txt
-$env:YGMC_LABEL='shwaige'; $env:YGMC_LOGIN_ACCOUNT='shwaige'; $env:YGMC_LOGIN_PASSWORD='shwaige'; py -m ygmc.cli daily
-```
-
 ## 账号配置
 
 支持两种凭证来源。
